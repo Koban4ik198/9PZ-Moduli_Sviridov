@@ -1,0 +1,26 @@
+﻿<Window x:Class="pz6.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:pz6"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="500" Width="900" Icon="/Resources/icons8-ресторан-100.ico">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60" />
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Background="#FFFBBD71">
+            <!--<Button x:Name="btnTestAdmin" Content="Тест: Админ" 
+            HorizontalAlignment="Left" Margin="220,5,5,5" Width="100" Height="50"
+            Click="btnTestAdmin_Click"/>-->
+            <Button x:Name="btnBack" HorizontalAlignment="Right" Width="100" Height="50" Margin="5" Cursor="Hand"  Content="Назад" Click="btnBack_Click"/>
+            <!--<Button x:Name="btnTestEmployees" Content="Тест: Сотрудники" HorizontalAlignment="Center" Margin="110,5,5,5" Width="150" Height="50" Click="btnTestEmployees_Click"/> -->
+            <Image HorizontalAlignment="Left" Width="auto" Height="50" Margin="10, 7, 0, 7" Source="/Resources/icons8-ресторан-100.png"/>
+        </Grid> 
+        
+        <Frame x:Name="FrmMain" Grid.Row="1" NavigationUIVisibility="Hidden" ContentRendered="FrmMain_ContentRendered"/>
+    </Grid>
+</Window>

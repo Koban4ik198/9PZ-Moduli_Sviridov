@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="86af7771a5e54508981559b892e9f6f3" Name="Diagram1">
+        <EntityTypeShape EntityType="RestaurantModel.Clients" Width="1.5" PointX="1.5" PointY="14.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="RestaurantModel.Dishes" Width="1.5" PointX="0.75" PointY="4.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="RestaurantModel.Employees" Width="1.5" PointX="3.75" PointY="18.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="RestaurantModel.OrderItems" Width="1.5" PointX="3" PointY="4.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="RestaurantModel.Orders" Width="1.5" PointX="0.75" PointY="10.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="RestaurantModel.OrderStatus" Width="1.5" PointX="1.5" PointY="22" IsExpanded="true" />
+        <EntityTypeShape EntityType="RestaurantModel.Positions" Width="1.5" PointX="1.5" PointY="25.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="RestaurantModel.Procurements" Width="1.5" PointX="6" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RestaurantModel.ProcurementStatus" Width="1.5" PointX="3.75" PointY="11.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="RestaurantModel.ProductDish" Width="1.5" PointX="6" PointY="4.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RestaurantModel.Products" Width="1.5" PointX="3.75" PointY="1.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="RestaurantModel.sysdiagrams" Width="1.5" PointX="5.75" PointY="8.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RestaurantModel.TableReservations" Width="1.5" PointX="3.75" PointY="14.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RestaurantModel.TableStatus" Width="1.5" PointX="1.5" PointY="8.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="RestaurantModel.Unit" Width="1.5" PointX="3.75" PointY="8.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RestaurantModel.UserAuthorization" Width="1.5" PointX="1.5" PointY="19" IsExpanded="true" />
+        <AssociationConnector Association="RestaurantModel.FK__Orders__ClientID__3F466844" ManuallyRouted="false" />
+        <AssociationConnector Association="RestaurantModel.FK_Clients_ClientAuthorization" ManuallyRouted="false" />
+        <AssociationConnector Association="RestaurantModel.FK_TableReservations_Clients" ManuallyRouted="false" />
+        <AssociationConnector Association="RestaurantModel.FK__OrderItem__DishI__4316F928" ManuallyRouted="false" />
+        <AssociationConnector Association="RestaurantModel.FK_ProductDish_Dishes" ManuallyRouted="false" />
+        <AssociationConnector Association="RestaurantModel.FK_Employees_ClientAuthorization" ManuallyRouted="false" />
+        <AssociationConnector Association="RestaurantModel.FK_Employees_Positions" ManuallyRouted="false" />
+        <AssociationConnector Association="RestaurantModel.FK__OrderItem__Order__4222D4EF" ManuallyRouted="false" />
+        <AssociationConnector Association="RestaurantModel.FK_Orders_OrderStatus" ManuallyRouted="false" />
+        <AssociationConnector Association="RestaurantModel.FK__Procureme__Produ__48CFD27E" ManuallyRouted="false" />
+        <AssociationConnector Association="RestaurantModel.FK_Procurements_ProcurementStatus" ManuallyRouted="false" />
+        <AssociationConnector Association="RestaurantModel.FK_ProductDish_Products" ManuallyRouted="false" />
+        <AssociationConnector Association="RestaurantModel.FK_ProductDish_Unit" ManuallyRouted="false" />
+        <AssociationConnector Association="RestaurantModel.FK_TableReservations_TableStatus" ManuallyRouted="false" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>
