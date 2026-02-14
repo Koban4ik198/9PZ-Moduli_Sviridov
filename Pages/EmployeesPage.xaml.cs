@@ -23,7 +23,7 @@ namespace pz6.Pages
     {
         private List<Models.Employees> _allEmployees;
 
-        public EmployeesPage(UserAuthorization currentUser = null) // ДОБАВЛЕН ПАРАМЕТР
+        public EmployeesPage(UserAuthorization currentUser = null)
         {
             InitializeComponent();
 
@@ -41,6 +41,7 @@ namespace pz6.Pages
             {
             }
 
+            LoadEmployees();
             LoadFilters();
         }
 

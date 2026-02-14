@@ -2,6 +2,7 @@
 using pz6.Models;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -92,48 +93,60 @@ namespace pz6.Pages
 
         private void btnSave_Click(object sender, RoutedEventArgs e)
         {
-            // ВАЛИДАЦИЯ
-            if (string.IsNullOrWhiteSpace(txtLastName.Text))
+            // ============ ВАЛИДАЦИЯ ============
+            var validationResults = new List<System.ComponentModel.DataAnnotations.ValidationResult>();
+
+            // 1. Создаём объекты для валидации
+            var employeeValidation = new EmployeeValidation
             {
-                MessageBox.Show("Введите фамилию");
-                txtLastName.Focus();
-                return;
+                LastName = txtLastName.Text.Trim(),
+                FirstName = txtFirstName.Text.Trim(),
+                MiddleName = txtMiddleName.Text?.Trim(),
+                ContactPhone = txtContactPhone.Text?.Trim(),
+                PositionID = cmbPosition.SelectedValue as int?
+            };
+
+            var authValidation = new UserAuthValidation
+            {
+                Email = txtEmail.Text.Trim(),
+                Password = txtPassword.Password
+            };
+
+            // 2. Валидируем сотрудника
+            var empContext = new ValidationContext(employeeValidation);
+            Validator.TryValidateObject(employeeValidation, empContext, validationResults, true);
+
+            // 3. Валидируем авторизацию (только для новых или при смене пароля)
+            if (!_isEditMode || !string.IsNullOrWhiteSpace(txtPassword.Password))
+            {
+                var authContext = new ValidationContext(authValidation);
+                Validator.TryValidateObject(authValidation, authContext, validationResults, true);
             }
 
-            if (string.IsNullOrWhiteSpace(txtFirstName.Text))
-            {
-                MessageBox.Show("Введите имя");
-                txtFirstName.Focus();
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(txtEmail.Text))
-            {
-                MessageBox.Show("Введите email (логин)");
-                txtEmail.Focus();
-                return;
-            }
-
-            if (txtPassword.Password.Length < 3)
-            {
-                MessageBox.Show("Введите пароль (минимум 3 символа)");
-                txtPassword.Focus();
-                return;
-            }
-
+            // 4. Проверяем должность отдельно (ComboBox)
             if (cmbPosition.SelectedItem == null)
             {
-                MessageBox.Show("Выберите должность");
-                cmbPosition.Focus();
+                validationResults.Add(new System.ComponentModel.DataAnnotations.ValidationResult("Выберите должность", new[] { "PositionID" }));
+            }
+
+            // 5. Если есть ошибки - показываем их
+            if (validationResults.Any())
+            {
+                string errorMessage = "Обнаружены ошибки:\n\n" +
+                    string.Join("\n", validationResults.Select(vr => $"• {vr.ErrorMessage}"));
+
+                MessageBox.Show(errorMessage, "Ошибка валидации",
+                               MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
+            // ============ ОСТАЛЬНАЯ ЛОГИКА ============
             try
             {
                 if (!_isEditMode)
                 {
                     // ============ ДОБАВЛЕНИЕ НОВОГО СОТРУДНИКА ============
-                    using (var db = new RestaurantEntities()) // ПЕРЕИМЕНОВАЛ в db
+                    using (var db = new RestaurantEntities())
                     {
                         // 1. Проверяем, нет ли уже такого email
                         var existingEmail = db.UserAuthorization
@@ -175,7 +188,7 @@ namespace pz6.Pages
                 else
                 {
                     // ============ РЕДАКТИРОВАНИЕ СУЩЕСТВУЮЩЕГО ============
-                    using (var db = new RestaurantEntities()) // ПЕРЕИМЕНОВАЛ в db
+                    using (var db = new RestaurantEntities())
                     {
                         var existing = db.Employees
                             .Include("Positions")

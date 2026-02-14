@@ -14,5 +14,7 @@ namespace pz6
             }
             return _context;
         }
+
+        public static bool IsTwoFactorEnabled = true;
     }
 }

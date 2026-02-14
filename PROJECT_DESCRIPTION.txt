@@ -1,0 +1,448 @@
+================================================================================
+                    ПОЛНОЕ ОПИСАНИЕ ПРОЕКТА "РЕСТОРАН"
+================================================================================
+
+ОБЩАЯ ИНФОРМАЦИЯ:
+- Название проекта: pz6 (Практическая работа 6-9)
+- Тип приложения: WPF Desktop Application (Windows Presentation Foundation)
+- Платформа: .NET Framework 4.7.2
+- Язык программирования: C#
+- База данных: SQL Server (Entity Framework 5.0)
+- Namespace: pz6
+
+================================================================================
+                        АРХИТЕКТУРА ПРОЕКТА
+================================================================================
+
+СТРУКТУРА ПАПОК:
+├── Pages/              - Страницы приложения (XAML + Code-behind)
+├── Models/             - Модели данных (Entity Framework)
+├── Services/           - Сервисные классы (утилиты)
+├── Validators/         - Валидаторы данных
+├── Resources/          - Ресурсы (иконки, изображения)
+├── Properties/         - Свойства проекта
+├── bin/                - Скомпилированные файлы
+├── obj/                - Временные файлы сборки
+└── packages/           - NuGet пакеты (Entity Framework)
+
+================================================================================
+                        ГЛАВНЫЕ ФАЙЛЫ ПРОЕКТА
+================================================================================
+
+1. App.xaml / App.xaml.cs
+   Назначение: Точка входа в приложение
+   Класс: App : Application
+   Методы: (стандартные, без кастомизации)
+
+2. MainWindow.xaml / MainWindow.xaml.cs
+   Назначение: Главное окно приложения с навигацией
+   Класс: MainWindow : Window
+   Методы:
+   - MainWindow() - конструктор, инициализирует окно и открывает страницу авторизации
+   - btnBack_Click() - обработчик кнопки "Назад"
+   - FrmMain_ContentRendered() - управляет видимостью кнопки "Назад"
+
+3. Helper.cs
+   Назначение: Вспомогательный класс для работы с контекстом БД
+   Класс: Helper (internal)
+   Поля:
+   - _context : RestaurantEntities (статическое, приватное)
+   Методы:
+   - GetContext() : RestaurantEntities - возвращает единственный экземпляр контекста БД (Singleton)
+
+4. Position.cs
+   Назначение: Дополнительная модель должности
+   Класс: Position (partial)
+   Свойства:
+   - PositionID : int
+   - PositionName : string
+   - Description : string
+   - Employees : ICollection<Employee>
+
+================================================================================
+                        ПАПКА PAGES (СТРАНИЦЫ)
+================================================================================
+
+1. Autho.xaml / Autho.xaml.cs
+   Назначение: Страница авторизации пользователей
+   Класс: Autho : Page
+   
+   Поля:
+   - click : int - счетчик попыток входа
+   - db : RestaurantEntities - контекст базы данных
+   - failedAttempts : int - счетчик неудачных попыток
+   - blockEndTime : DateTime? - время окончания блокировки
+   - timer : DispatcherTimer - таймер для блокировки
+   
+   Методы:
+   - Autho() - конструктор, инициализирует компоненты и таймер
+   - btnEnter_Click() - обработка входа в систему:
+     * Проверка блокировки
+     * Валидация логина/пароля
+     * Проверка капчи (со 2-й попытки)
+     * Определение роли (администратор/сотрудник/клиент)
+     * Проверка рабочего времени для сотрудников
+     * Навигация на соответствующую страницу
+   - btnEnterGuest_Click() - вход как гость
+   - GenerateCapctcha() - генерация капчи
+   - UpdateUI() - обновление интерфейса при блокировке
+   - BlockSystem() - блокировка системы на 12 секунд
+   - IsBlocked() - проверка, заблокирована ли система
+   - Timer_Tick() - обработчик таймера блокировки
+   - CheckForBlock() - проверка необходимости блокировки (после 3 попыток)
+
+2. Client.xaml / Client.xaml.cs
+   Назначение: Страница клиента/сотрудника после входа
+   Класс: Client : Page
+   
+   Поля:
+   - _user : UserAuthorization - текущий пользователь
+   - _role : string - роль пользователя
+   
+   Методы:
+   - Client(UserAuthorization user, string role) - конструктор
+   - DisplayGreeting() - отображение приветствия:
+     * Определяет время суток
+     * Получает ФИО из таблицы Employees или Clients
+     * Формирует персонализированное приветствие
+
+3. EmployeesPage.xaml / EmployeesPage.xaml.cs
+   Назначение: Страница управления сотрудниками (только для администраторов)
+   Класс: EmployeesPage : Page
+   
+   Поля:
+   - _allEmployees : List<Employees> - список всех сотрудников
+   
+   Методы:
+   - EmployeesPage(UserAuthorization currentUser) - конструктор с проверкой прав
+   - CheckAdminAccess() - проверка прав администратора
+   - Page_Loaded() - загрузка данных при открытии страницы
+   - LoadEmployees() - загрузка списка сотрудников из БД
+   - LoadFilters() - загрузка фильтров по должностям
+   - ApplyFilters() - применение фильтров и поиска
+   - txtSearch_TextChanged() - обработчик поиска по ФИО
+   - cmbFilter_SelectionChanged() - обработчик фильтра по должности
+   - btnAddEmployee_Click() - переход на страницу добавления сотрудника
+   - LViewEmployees_MouseDoubleClick() - редактирование сотрудника (двойной клик)
+   - btnRefresh_Click() - обновление списка
+
+4. AddEditEmployeePage.xaml / AddEditEmployeePage.xaml.cs
+   Назначение: Страница добавления/редактирования сотрудника
+   Класс: AddEditEmployeePage : Page
+   
+   Поля:
+   - _currentEmployee : Employees - текущий редактируемый сотрудник
+   - _isEditMode : bool - режим редактирования (true) или добавления (false)
+   
+   Методы:
+   - AddEditEmployeePage(Employees selectedEmployee) - конструктор:
+     * Если selectedEmployee != null - режим редактирования
+     * Если selectedEmployee == null - режим добавления
+   - LoadPositions() - загрузка списка должностей
+   - btnSave_Click() - сохранение данных:
+     * Валидация через EmployeeValidation и UserAuthValidation
+     * Проверка уникальности email
+     * Создание записи в UserAuthorization
+     * Создание/обновление записи в Employees
+     * Хеширование пароля
+   - btnDelete_Click() - удаление сотрудника
+   - btnCancel_Click() - отмена и возврат назад
+
+================================================================================
+                        ПАПКА MODELS (МОДЕЛИ ДАННЫХ)
+================================================================================
+
+1. RestaurantEntities (Model1.Context.cs)
+   Назначение: Контекст Entity Framework для работы с БД
+   Класс: RestaurantEntities : DbContext
+   
+   DbSet коллекции:
+   - Clients : DbSet<Clients>
+   - Dishes : DbSet<Dishes>
+   - Employees : DbSet<Employees>
+   - OrderItems : DbSet<OrderItems>
+   - Orders : DbSet<Orders>
+   - OrderStatus : DbSet<OrderStatus>
+   - Positions : DbSet<Positions>
+   - Procurements : DbSet<Procurements>
+   - ProcurementStatus : DbSet<ProcurementStatus>
+   - ProductDish : DbSet<ProductDish>
+   - Products : DbSet<Products>
+   - sysdiagrams : DbSet<sysdiagrams>
+   - TableReservations : DbSet<TableReservations>
+   - TableStatus : DbSet<TableStatus>
+   - Unit : DbSet<Unit>
+   - UserAuthorization : DbSet<UserAuthorization>
+
+2. UserAuthorization.cs
+   Назначение: Модель авторизации пользователей
+   Свойства:
+   - ID : int (Primary Key)
+   - Email : string
+   - HashPassword : string
+   - Clients : ICollection<Clients> (навигационное свойство)
+   - Employees : ICollection<Employees> (навигационное свойство)
+
+3. Employees.cs
+   Назначение: Модель сотрудников
+   Свойства:
+   - EmployeeID : int (Primary Key)
+   - LastName : string
+   - FirstName : string
+   - MiddleName : string
+   - PositionID : int? (Foreign Key)
+   - ContactPhone : string
+   - AutID : int (Foreign Key)
+   - UserAuthorization : UserAuthorization (навигационное свойство)
+   - Positions : Positions (навигационное свойство)
+
+4. Clients.cs
+   Назначение: Модель клиентов
+   Свойства:
+   - ClientID : int (Primary Key)
+   - LastName : string
+   - FirstName : string
+   - MiddleName : string
+   - Phone : string
+   - AutID : int (Foreign Key)
+   - Orders : ICollection<Orders>
+   - UserAuthorization : UserAuthorization
+   - TableReservations : ICollection<TableReservations>
+
+5. Positions.cs
+   Назначение: Модель должностей
+   Свойства:
+   - PositionID : int (Primary Key)
+   - PositionName : string
+   - Employees : ICollection<Employees>
+
+6. Orders.cs
+   Назначение: Модель заказов
+   Свойства:
+   - OrderID : int (Primary Key)
+   - ClientID : int (Foreign Key)
+   - TableNumber : int
+   - OrderDateTime : DateTime
+   - Status : int (Foreign Key)
+   - Clients : Clients
+   - OrderItems : ICollection<OrderItems>
+   - OrderStatus : OrderStatus
+
+7. EmployeeValidation.cs
+   Назначение: Класс для валидации данных сотрудника
+   Свойства с атрибутами валидации:
+   - LastName : string [Required, StringLength(50, MinimumLength=2)]
+   - FirstName : string [Required, StringLength(50, MinimumLength=2)]
+   - MiddleName : string [StringLength(50)]
+   - PositionID : int? [Required]
+   - ContactPhone : string [Phone, StringLength(20)]
+
+8. UserAuthValidation.cs
+   Назначение: Класс для валидации данных авторизации
+   Свойства с атрибутами валидации:
+   - Email : string [Required, EmailAddress, StringLength(100)]
+   - Password : string [Required, MinLength(6)]
+
+================================================================================
+                        ПАПКА SERVICES (СЕРВИСЫ)
+================================================================================
+
+1. CaptchaGenerator.cs
+   Назначение: Генерация капчи
+   Класс: CaptchaGenerator (internal)
+   Namespace: pz3_.Services
+   
+   Поля:
+   - random : Random (статическое)
+   - Characters : string (константа) = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+   
+   Методы:
+   - GenerateCaptchaText(int length) : string - генерирует случайный текст заданной длины
+
+2. HashPaasword.cs
+   Назначение: Хеширование паролей
+   Класс: HashPaasword (internal)
+   Namespace: pz3_.Services
+   
+   Методы:
+   - HashPassword(string password) : string - хеширует пароль с использованием SHA256
+
+3. TimeHelper.cs
+   Назначение: Работа со временем
+   Класс: TimeHelper (static)
+   Namespace: pz6.Helpers
+   
+   Методы:
+   - GetTimeOfDayGreeting() : string - возвращает приветствие в зависимости от времени суток:
+     * 10:00-12:00 - "Доброе утро"
+     * 12:00-17:00 - "Добрый день"
+     * 17:00-19:00 - "Добрый вечер"
+     * Остальное - "Здравствуйте"
+   - IsWorkingHours() : bool - проверяет рабочее время (10:00-23:00)
+
+4. TimeService.cs
+   Назначение: Дополнительный сервис времени
+   Класс: TimeService (static)
+   Namespace: pz6.Services
+   
+   Методы:
+   - GetTimeOfDayGreeting() : string - аналог из TimeHelper
+   - IsWorkingHours() : bool - проверка рабочего времени (10:00-19:00)
+   - GetFullName(string lastName, string firstName, string middleName) : string - формирует полное имя
+
+================================================================================
+                        ПАПКА VALIDATORS (ВАЛИДАТОРЫ)
+================================================================================
+
+1. EmployeeValidator.cs
+   Назначение: Валидатор для сотрудников
+   Класс: EmployeeValidator
+   Namespace: pz6.Validators
+   
+   Методы:
+   - Validate(Employees employee) : List<ValidationResult> - валидирует объект сотрудника
+
+================================================================================
+                        ЛОГИКА РАБОТЫ ПРИЛОЖЕНИЯ
+================================================================================
+
+ПРОЦЕСС АВТОРИЗАЦИИ:
+1. Пользователь вводит Email и Пароль
+2. Пароль хешируется через HashPassword.HashPassword()
+3. Поиск в таблице UserAuthorization по Email и HashPassword
+4. Со второй попытки появляется капча
+5. После 3 неудачных попыток - блокировка на 12 секунд
+6. При успешном входе определяется роль:
+   - Если есть запись в Employees с PositionID = 1 → Администратор → EmployeesPage
+   - Если есть запись в Employees с другим PositionID → Сотрудник → Client (с проверкой рабочего времени)
+   - Если нет записи в Employees → Клиент → Client
+7. Гость может войти без авторизации
+
+УПРАВЛЕНИЕ СОТРУДНИКАМИ (только администратор):
+1. Просмотр списка всех сотрудников (ListView)
+2. Поиск по ФИО (TextBox)
+3. Фильтрация по должности (ComboBox)
+4. Добавление нового сотрудника:
+   - Ввод ФИО, телефона, должности
+   - Создание учетной записи (Email + Пароль)
+   - Валидация всех полей
+   - Хеширование пароля
+   - Сохранение в БД (UserAuthorization + Employees)
+5. Редактирование сотрудника (двойной клик):
+   - Изменение данных
+   - Опциональное изменение пароля
+   - Валидация и сохранение
+6. Удаление сотрудника
+
+БЕЗОПАСНОСТЬ:
+- Пароли хешируются SHA256
+- Капча после первой неудачной попытки
+- Блокировка после 3 неудачных попыток
+- Проверка рабочего времени для сотрудников
+- Проверка прав доступа (только администратор может управлять сотрудниками)
+
+ВАЛИДАЦИЯ ДАННЫХ:
+- Email: обязательное поле, формат email, макс 100 символов
+- Пароль: обязательное поле, минимум 6 символов
+- Фамилия/Имя: обязательные поля, 2-50 символов
+- Отчество: необязательное, макс 50 символов
+- Телефон: формат телефона, макс 20 символов
+- Должность: обязательное поле
+
+================================================================================
+                        ТЕХНОЛОГИИ И БИБЛИОТЕКИ
+================================================================================
+
+1. Entity Framework 5.0.0
+   - ORM для работы с базой данных
+   - Database First подход
+   - Lazy Loading для связанных данных
+
+2. WPF (Windows Presentation Foundation)
+   - XAML для разметки интерфейса
+   - Data Binding для связывания данных
+   - Navigation Service для навигации между страницами
+
+3. System.ComponentModel.DataAnnotations
+   - Атрибуты валидации данных
+   - Validator.TryValidateObject() для проверки
+
+4. System.Security.Cryptography
+   - SHA256 для хеширования паролей
+
+5. DispatcherTimer
+   - Таймер для блокировки системы
+
+================================================================================
+                        КОНФИГУРАЦИЯ
+================================================================================
+
+Файл: App.config
+Содержит:
+- Строку подключения к БД (connectionString)
+- Настройки Entity Framework
+- Версия .NET Framework: 4.7.2
+
+Файл: packages.config
+Зависимости:
+- EntityFramework 5.0.0
+- EntityFramework.ru 5.0.0 (русская локализация)
+
+================================================================================
+                        БАЗА ДАННЫХ
+================================================================================
+
+Основные таблицы:
+1. UserAuthorization - авторизация пользователей
+2. Employees - сотрудники
+3. Clients - клиенты
+4. Positions - должности
+5. Orders - заказы
+6. OrderItems - позиции заказов
+7. OrderStatus - статусы заказов
+8. Dishes - блюда
+9. Products - продукты
+10. ProductDish - связь продуктов и блюд
+11. Procurements - закупки
+12. ProcurementStatus - статусы закупок
+13. TableReservations - бронирование столиков
+14. TableStatus - статусы столиков
+15. Unit - единицы измерения
+16. sysdiagrams - системные диаграммы
+
+Связи:
+- UserAuthorization 1:N Employees (один пользователь может быть сотрудником)
+- UserAuthorization 1:N Clients (один пользователь может быть клиентом)
+- Positions 1:N Employees (одна должность - много сотрудников)
+- Clients 1:N Orders (один клиент - много заказов)
+- Orders 1:N OrderItems (один заказ - много позиций)
+
+================================================================================
+                        ОСОБЕННОСТИ РЕАЛИЗАЦИИ
+================================================================================
+
+1. Singleton для контекста БД (Helper.GetContext())
+2. Partial классы для моделей (позволяют расширять автогенерированный код)
+3. Использование using для автоматического закрытия контекста БД
+4. Навигация через NavigationService
+5. Проверка прав доступа на уровне страниц
+6. Персонализированные приветствия по времени суток
+7. Динамическая блокировка UI при неудачных попытках входа
+8. Раздельная валидация для разных сущностей
+
+================================================================================
+                        ВОЗМОЖНЫЕ УЛУЧШЕНИЯ
+================================================================================
+
+1. Добавить восстановление пароля через email (SMTP)
+2. Реализовать двухфакторную аутентификацию
+3. Добавить логирование действий пользователей
+4. Реализовать работу с заказами, блюдами, закупками
+5. Добавить отчеты и статистику
+6. Улучшить UI/UX дизайн
+7. Добавить экспорт данных (Excel, PDF)
+8. Реализовать права доступа для разных ролей
+
+================================================================================
+                        КОНЕЦ ОПИСАНИЯ
+================================================================================

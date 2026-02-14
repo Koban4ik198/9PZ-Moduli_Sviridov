@@ -6,7 +6,7 @@
       xmlns:local="clr-namespace:pz6.Pages"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
-      Title="Autho" Background="White"> 
+      Title="Autho" Background="White">
 
     <Grid>
         <Grid.ColumnDefinitions>
@@ -15,28 +15,70 @@
             <ColumnDefinition Width="260"/>
         </Grid.ColumnDefinitions>
 
-
-        <StackPanel Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-
-            <TextBlock Text="Логин"/>
-            <TextBox x:Name="tbLogin"/>
+        <!-- ОСНОВНАЯ ПАНЕЛЬ АВТОРИЗАЦИИ -->
+        <StackPanel x:Name="LoginPanel" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Visible">
+            <TextBlock Text="Логин (Email)"/>
+            <TextBox x:Name="tbLogin" Width="250"/>
 
             <TextBlock Text="Пароль"/>
-            <TextBox x:Name="tbPassword"/>
-            <StackPanel Orientation="Horizontal">
-                <TextBlock x:Name="tblCaptcha" Text="Капча" Visibility="Hidden"/>
-                <TextBlock x:Name="tblBlockTimer" HorizontalAlignment="Left" />
-            </StackPanel>
-            
-            <TextBox x:Name="tbCaptcha" Visibility="Hidden"/>
+            <TextBox x:Name="tbPassword" Width="250"/>
 
-            <TextBlock HorizontalAlignment="Center" Visibility="Hidden" x:Name="txtBlockTimer"/>
-            
+            <!-- Капча (уже есть, оставляем) -->
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock x:Name="tblCaptcha" Text="Капча" Visibility="Hidden"/>
+                <TextBlock x:Name="tblBlockTimer" />
+            </StackPanel>
+            <TextBox x:Name="tbCaptcha" Visibility="Hidden" Width="250"/>
+
+            <!-- Сообщения об ошибках -->
+            <TextBlock x:Name="txtError" Foreground="Red" TextWrapping="Wrap" Margin="0,5"/>
+
+            <!-- Кнопки -->
             <StackPanel Orientation="Horizontal" Height="80" HorizontalAlignment="Center">
                 <Button x:Name="btnEnterGuest" Margin="5,15,5,5" Content="Войти как гость" Click="btnEnterGuest_Click"/>
                 <Button x:Name="btnEnter" Margin="5,15,5,5" Content="Войти" Click="btnEnter_Click"/>
             </StackPanel>
-            
+
+            <!-- Кнопка восстановления пароля -->
+            <Button Content="Забыл пароль?" Width="120" HorizontalAlignment="Center" Margin="0,10" Click="ForgotPasswordButton_Click"/>
+        </StackPanel>
+
+        <!-- ПАНЕЛЬ: ВВОД EMAIL ДЛЯ ВОССТАНОВЛЕНИЯ -->
+        <StackPanel x:Name="RecoveryEmailPanel" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">
+            <TextBlock Text="Восстановление пароля" FontSize="16" Margin="0,0,0,10"/>
+            <TextBlock Text="Введите email:"/>
+            <TextBox x:Name="tbRecoveryEmail" Width="250"/>
+            <TextBlock x:Name="txtRecoveryError" Foreground="Red" TextWrapping="Wrap" Margin="0,5"/>
+            <StackPanel Orientation="Horizontal" Margin="0,10">
+                <Button Content="Отправить код" Click="SendRecoveryCode_Click"/>
+                <Button Content="Назад" Click="BackToLogin_Click" Margin="10,0,0,0"/>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- ПАНЕЛЬ: ВВОД КОДА (восстановление или 2FA) -->
+        <StackPanel x:Name="CodePanel" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">
+            <TextBlock x:Name="txtCodeTitle" Text="Введите код из email" FontSize="16" Margin="0,0,0,10"/>
+            <TextBlock Text="Код (4 цифры):"/>
+            <TextBox x:Name="tbCode" Width="250" MaxLength="4" PreviewTextInput="NumberValidationTextBox"/>
+            <TextBlock x:Name="txtCodeError" Foreground="Red" TextWrapping="Wrap" Margin="0,5"/>
+            <StackPanel Orientation="Horizontal" Margin="0,10">
+                <Button Content="Подтвердить" Click="VerifyCode_Click"/>
+                <Button Content="Назад" Click="BackFromCode_Click" Margin="10,0,0,0"/>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- ПАНЕЛЬ: НОВЫЙ ПАРОЛЬ -->
+        <StackPanel x:Name="NewPasswordPanel" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">
+            <TextBlock Text="Новый пароль" FontSize="16" Margin="0,0,0,10"/>
+            <TextBlock Text="Новый пароль:"/>
+            <TextBox x:Name="tbNewPassword" Width="250"/>
+            <TextBlock Text="Повторите пароль:"/>
+            <TextBox x:Name="tbConfirmPassword" Width="250"/>
+            <TextBlock x:Name="txtNewPasswordError" Foreground="Red" TextWrapping="Wrap" Margin="0,5"/>
+            <StackPanel Orientation="Horizontal" Margin="0,10">
+                <Button Content="Сохранить" Click="SaveNewPassword_Click"/>
+                <Button Content="Назад" Click="BackFromNewPassword_Click" Margin="10,0,0,0"/>
+            </StackPanel>
         </StackPanel>
     </Grid>
 </Page>
