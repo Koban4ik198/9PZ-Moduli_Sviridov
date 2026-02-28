@@ -16,7 +16,6 @@ namespace pz6.Services
             public DateTime Expiry { get; set; }
         }
 
-        // Явное указание типа — обязательно в C# 7.3
         private static readonly Dictionary<string, CodeEntry> _storage = new Dictionary<string, CodeEntry>();
 
         /// <summary>

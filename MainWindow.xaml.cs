@@ -1,23 +1,13 @@
 ﻿using pz6.Pages;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace pz6
 {
     /// <summary>
-    /// Логика взаимодействия для MainWindow.xaml
+    /// Главное окно приложения. Содержит Frame для навигации по страницам и кнопку возврата.
     /// </summary>
     public partial class MainWindow : Window
     {
@@ -34,14 +24,15 @@ namespace pz6
 
         private void FrmMain_ContentRendered(object sender, EventArgs e)
         {
-            if (FrmMain.CanGoBack)
-                btnBack.Visibility = Visibility.Visible;
-            else 
-                btnBack.Visibility = Visibility.Hidden;
+            // Управляем видимостью кнопки "Назад" в зависимости от истории навигации
+            btnBack.Visibility = FrmMain.CanGoBack ? Visibility.Visible : Visibility.Hidden;
         }
 
-        //private void btnTestEmployees_Click(object sender, RoutedEventArgs e){FrmMain.Navigate(new Pages.EmployeesPage());}
-
-        //private void btnTestAdmin_Click(object sender, RoutedEventArgs e){FrmMain.Navigate(new Pages.EmployeesPage());}
+        /*
+         Тестовые кнопки для быстрого перехода при отладке.
+         Можно раскомментировать, если нужно быстро проверить страницу сотрудников.
+         */
+        //private void btnTestEmployees_Click(object sender, RoutedEventArgs e) { FrmMain.Navigate(new Pages.EmployeesPage()); }
+        //private void btnTestAdmin_Click(object sender, RoutedEventArgs e)     { FrmMain.Navigate(new Pages.EmployeesPage()); }
     }
 }

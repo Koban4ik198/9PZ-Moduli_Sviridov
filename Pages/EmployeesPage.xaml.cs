@@ -1,23 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
 using pz6.Models;
 
 namespace pz6.Pages
 {
     /// <summary>
-    /// Логика взаимодействия для EmployeesPage.xaml
+    /// Страница со списком сотрудников (только для администраторов)
     /// </summary>
     public partial class EmployeesPage : Page
     {
@@ -27,7 +19,6 @@ namespace pz6.Pages
         {
             InitializeComponent();
 
-            // Если передали пользователя - проверяем права
             if (currentUser != null)
             {
                 if (!CheckAdminAccess(currentUser))
@@ -37,41 +28,40 @@ namespace pz6.Pages
                     return;
                 }
             }
-            else
-            {
-            }
 
             LoadEmployees();
             LoadFilters();
         }
 
+        /// <summary>Проверяет, является ли пользователь администратором</summary>
         private bool CheckAdminAccess(UserAuthorization user)
         {
             if (user == null) return false;
-
             if (user.Employees != null && user.Employees.Any())
             {
                 var employee = user.Employees.FirstOrDefault();
                 return employee.PositionID == 1;
             }
-
             return false;
         }
 
+        /// <summary>Перезагружает список сотрудников при загрузке страницы</summary>
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             LoadEmployees();
         }
 
+        /// <summary>Загружает всех сотрудников из базы вместе с должностями</summary>
         private void LoadEmployees()
         {
             var context = Helper.GetContext();
             _allEmployees = context.Employees
                 .Include("Positions")
                 .ToList();
-            LViewEmployees.ItemsSource = _allEmployees; 
+            LViewEmployees.ItemsSource = _allEmployees;
         }
 
+        /// <summary>Заполняет выпадающий список должностей для фильтра</summary>
         private void LoadFilters()
         {
             cmbFilter.Items.Clear();
@@ -89,13 +79,13 @@ namespace pz6.Pages
             cmbFilter.SelectedIndex = 0;
         }
 
+        /// <summary>Применяет поиск по ФИО и фильтр по должности</summary>
         private void ApplyFilters()
         {
             if (_allEmployees == null) return;
 
             var filtered = _allEmployees.AsEnumerable();
 
-            // Поиск по ФИО
             if (!string.IsNullOrWhiteSpace(txtSearch.Text))
             {
                 string searchText = txtSearch.Text.ToLower();
@@ -104,7 +94,6 @@ namespace pz6.Pages
                     .ToLower().Contains(searchText));
             }
 
-            // Фильтр по должности
             if (cmbFilter.SelectedIndex > 0)
             {
                 string selectedPosition = cmbFilter.SelectedItem.ToString();
@@ -116,21 +105,25 @@ namespace pz6.Pages
             LViewEmployees.ItemsSource = filtered.ToList();
         }
 
+        /// <summary>Переприменяет фильтры при изменении текста поиска</summary>
         private void txtSearch_TextChanged(object sender, TextChangedEventArgs e)
         {
             ApplyFilters();
         }
 
+        /// <summary>Переприменяет фильтры при выборе должности</summary>
         private void cmbFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ApplyFilters();
         }
 
+        /// <summary>Переходит на страницу добавления нового сотрудника</summary>
         private void btnAddEmployee_Click(object sender, RoutedEventArgs e)
         {
             NavigationService.Navigate(new AddEditEmployeePage(null));
         }
 
+        /// <summary>Открывает форму редактирования при двойном клике по сотруднику</summary>
         private void LViewEmployees_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             if (LViewEmployees.SelectedItem is Models.Employees selectedEmployee)
@@ -139,6 +132,7 @@ namespace pz6.Pages
             }
         }
 
+        /// <summary>Обновляет список сотрудников из базы</summary>
         private void btnRefresh_Click(object sender, RoutedEventArgs e)
         {
             LoadEmployees();

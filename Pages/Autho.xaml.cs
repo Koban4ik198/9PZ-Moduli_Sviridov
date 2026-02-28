@@ -25,46 +25,35 @@ namespace pz6.Pages
             InitializeComponent();
             click = 0;
             db = Helper.GetContext();
-
             timer = new DispatcherTimer();
             timer.Interval = TimeSpan.FromSeconds(1);
             timer.Tick += Timer_Tick;
-
-            // ВАЖНО: обновляем UI при старте, чтобы снять возможную блокировку
             UpdateUI();
         }
 
+        /// <summary>Обрабатывает нажатие кнопки входа, проверяет данные, капчу и 2FA</summary>
         private async void btnEnter_Click(object sender, RoutedEventArgs e)
         {
             click += 1;
-
             if (IsBlocked())
                 return;
-
             string login = tbLogin.Text.Trim();
             string password = tbPassword.Text.Trim();
-
             string hashedPassword = HashPaasword.HashPassword(password);
-
             var user = db.UserAuthorization
                 .Include("Employees")
                 .Where(x => x.Email == login && x.HashPassword == hashedPassword)
                 .FirstOrDefault();
-
             bool needCaptcha = (click > 1);
             bool captchaValid = !needCaptcha || (needCaptcha && tbCaptcha.Text == tblCaptcha.Text);
-
             if (user != null && captchaValid)
             {
                 failedAttempts = 0;
                 click = 0;
-
-                // === 2FA ===
                 if (Helper.IsTwoFactorEnabled)
                 {
                     string code = TempCodeStorage.GenerateAndStore(user.Email);
-                    bool sent = await EmailService.SendCodeAsync(user.Email, code); // ← async!
-
+                    bool sent = await EmailService.SendCodeAsync(user.Email, code);
                     if (sent)
                     {
                         _currentRecoveryEmail = user.Email;
@@ -77,14 +66,11 @@ namespace pz6.Pages
                         return;
                     }
                 }
-
-                // === Обычный вход ===
                 CompleteLogin(user);
             }
             else
             {
                 failedAttempts++;
-
                 if (user == null)
                 {
                     MessageBox.Show("Неверный логин или пароль!");
@@ -93,7 +79,6 @@ namespace pz6.Pages
                 {
                     MessageBox.Show("Неверная капча!");
                 }
-
                 tbPassword.Clear();
                 tbCaptcha.Clear();
                 GenerateCapctcha();
@@ -101,6 +86,7 @@ namespace pz6.Pages
             }
         }
 
+        /// <summary>Проверяет количество неудачных попыток и запускает блокировку при необходимости</summary>
         private void CheckForBlock()
         {
             if (failedAttempts >= 3)
@@ -109,11 +95,13 @@ namespace pz6.Pages
             }
         }
 
+        /// <summary>Выполняет вход в режиме гостя (без авторизации)</summary>
         private void btnEnterGuest_Click(object sender, RoutedEventArgs e)
         {
             NavigationService.Navigate(new Client(null, null));
         }
 
+        /// <summary>Генерирует и отображает новую капчу</summary>
         private void GenerateCapctcha()
         {
             tbCaptcha.Visibility = Visibility.Visible;
@@ -123,6 +111,7 @@ namespace pz6.Pages
             tblCaptcha.TextDecorations = TextDecorations.Strikethrough;
         }
 
+        /// <summary>Обновляет доступность элементов интерфейса в зависимости от состояния блокировки</summary>
         private void UpdateUI()
         {
             bool isBlocked = IsBlocked();
@@ -134,6 +123,7 @@ namespace pz6.Pages
             tblBlockTimer.Visibility = isBlocked ? Visibility.Visible : Visibility.Collapsed;
         }
 
+        /// <summary>Запускает таймер блокировки на 12 секунд</summary>
         private void BlockSystem()
         {
             blockEndTime = DateTime.Now.AddSeconds(12);
@@ -141,11 +131,13 @@ namespace pz6.Pages
             UpdateUI();
         }
 
+        /// <summary>Проверяет, находится ли система в состоянии временной блокировки</summary>
         private bool IsBlocked()
         {
             return blockEndTime.HasValue && DateTime.Now < blockEndTime.Value;
         }
 
+        /// <summary>Обновляет оставшееся время блокировки каждую секунду</summary>
         private void Timer_Tick(object sender, EventArgs e)
         {
             if (blockEndTime.HasValue)
@@ -164,6 +156,7 @@ namespace pz6.Pages
             }
         }
 
+        /// <summary>Разрешает ввод только цифр в текстовое поле</summary>
         private void NumberValidationTextBox(object sender, System.Windows.Input.TextCompositionEventArgs e)
         {
             foreach (char c in e.Text)
@@ -176,6 +169,7 @@ namespace pz6.Pages
             }
         }
 
+        /// <summary>Переключает интерфейс на панель восстановления пароля</summary>
         private void ForgotPasswordButton_Click(object sender, RoutedEventArgs e)
         {
             LoginPanel.Visibility = Visibility.Collapsed;
@@ -183,6 +177,7 @@ namespace pz6.Pages
             if (txtRecoveryError != null) txtRecoveryError.Text = "";
         }
 
+        /// <summary>Отправляет код восстановления на указанный email</summary>
         private async void SendRecoveryCode_Click(object sender, RoutedEventArgs e)
         {
             string email = tbRecoveryEmail?.Text?.Trim();
@@ -191,27 +186,24 @@ namespace pz6.Pages
                 if (txtRecoveryError != null) txtRecoveryError.Text = "Введите email";
                 return;
             }
-
             var user = db.UserAuthorization.FirstOrDefault(u => u.Email == email);
             if (user == null)
             {
                 if (txtRecoveryError != null) txtRecoveryError.Text = "Пользователь не найден";
                 return;
             }
-
             string code = TempCodeStorage.GenerateAndStore(email);
-            bool sent = await EmailService.SendCodeAsync(email, code); // ← async!
-
+            bool sent = await EmailService.SendCodeAsync(email, code);
             if (!sent)
             {
                 if (txtRecoveryError != null) txtRecoveryError.Text = "Ошибка отправки email";
                 return;
             }
-
             _currentRecoveryEmail = email;
             SwitchToCodePanel("Восстановление пароля");
         }
 
+        /// <summary>Проверяет введённый код подтверждения и переходит к следующему шагу</summary>
         private void VerifyCode_Click(object sender, RoutedEventArgs e)
         {
             string code = tbCode?.Text?.Trim();
@@ -220,7 +212,6 @@ namespace pz6.Pages
                 if (txtCodeError != null) txtCodeError.Text = "Введите 4-значный код";
                 return;
             }
-
             if (TempCodeStorage.IsValid(_currentRecoveryEmail, code))
             {
                 if (txtCodeTitle?.Text == "Подтверждение входа")
@@ -241,31 +232,29 @@ namespace pz6.Pages
             }
         }
 
+        /// <summary>Сохраняет новый пароль после успешной проверки кода</summary>
         private void SaveNewPassword_Click(object sender, RoutedEventArgs e)
         {
             string pass1 = tbNewPassword?.Text;
             string pass2 = tbConfirmPassword?.Text;
-
             if (string.IsNullOrEmpty(pass1) || string.IsNullOrEmpty(pass2))
             {
                 if (txtNewPasswordError != null) txtNewPasswordError.Text = "Заполните все поля";
                 return;
             }
-
             if (pass1 != pass2)
             {
                 if (txtNewPasswordError != null) txtNewPasswordError.Text = "Пароли не совпадают";
                 return;
             }
-
             var user = db.UserAuthorization.First(u => u.Email == _currentRecoveryEmail);
             user.HashPassword = HashPaasword.HashPassword(pass1);
             db.SaveChanges();
-
             MessageBox.Show("Пароль успешно изменён!");
             BackToLogin();
         }
 
+        /// <summary>Переключает интерфейс на панель ввода кода подтверждения</summary>
         private void SwitchToCodePanel(string title)
         {
             RecoveryEmailPanel.Visibility = Visibility.Collapsed;
@@ -277,6 +266,7 @@ namespace pz6.Pages
             if (tbCode != null) tbCode.Text = "";
         }
 
+        /// <summary>Возвращает интерфейс на панель авторизации</summary>
         private void BackToLogin()
         {
             RecoveryEmailPanel.Visibility = Visibility.Collapsed;
@@ -285,6 +275,7 @@ namespace pz6.Pages
             LoginPanel.Visibility = Visibility.Visible;
         }
 
+        /// <summary>Завершает процесс входа и перенаправляет на соответствующую страницу</summary>
         private void CompleteLogin(UserAuthorization user)
         {
             if (user.Employees != null && user.Employees.Any())
@@ -295,7 +286,6 @@ namespace pz6.Pages
                     MessageBox.Show("Доступ запрещен! Рабочее время: 10:00 - 19:00");
                     return;
                 }
-
                 if (employee.PositionID == 1)
                 {
                     MessageBox.Show($"Добро пожаловать, администратор {employee.LastName}!");
@@ -314,8 +304,13 @@ namespace pz6.Pages
             }
         }
 
+        /// <summary>Возвращает на панель входа из панели кода</summary>
         private void BackToLogin_Click(object sender, RoutedEventArgs e) => BackToLogin();
+
+        /// <summary>Возвращает на панель входа из панели кода</summary>
         private void BackFromCode_Click(object sender, RoutedEventArgs e) => BackToLogin();
+
+        /// <summary>Возвращает на панель входа из панели нового пароля</summary>
         private void BackFromNewPassword_Click(object sender, RoutedEventArgs e) => BackToLogin();
     }
 }

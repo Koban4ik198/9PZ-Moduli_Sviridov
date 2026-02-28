@@ -6,23 +6,21 @@ using System.Threading.Tasks;
 namespace pz6.Services
 {
     /// <summary>
-    /// Сервис для отправки email-сообщений через Gmail SMTP.
-    /// Требуется: включить 2FA в Google аккаунте и создать "Пароль приложения".
+    /// Отправка email через Gmail SMTP
     /// </summary>
     public static class EmailService
     {
-        // Настройки Gmail SMTP
         private const string SmtpServer = "smtp.gmail.com";
         private const int SmtpPort = 587;
         private const string SenderEmail = "borissviridov24@gmail.com";
-        private const string SenderPassword = "sgqbuusbxqiyajmr";
+        private const string SenderPassword = "sgqbuusbxqiyajmr"; // пароль приложения Google
 
         /// <summary>
-        /// Асинхронно отправляет четырёхзначный код на указанный email.
+        /// Отправляет код подтверждения на email
         /// </summary>
-        /// <param name="toEmail">Email получателя</param>
-        /// <param name="code">Четырёхзначный код</param>
-        /// <returns>True, если отправка успешна; иначе — false</returns>
+        /// <param name="toEmail">Получатель</param>
+        /// <param name="code">Код (4 цифры)</param>
+        /// <returns>true — успех, false — ошибка</returns>
         public static async Task<bool> SendCodeAsync(string toEmail, string code)
         {
             try
@@ -38,10 +36,11 @@ namespace pz6.Services
                     {
                         From = new MailAddress(SenderEmail, "Система управления рестораном"),
                         Subject = "Код подтверждения",
-                        Body = $"Ваш код для восстановления пароля или входа: <b>{code}</b>",
+                        Body = $"Ваш код: <b>{code}</b>",
                         IsBodyHtml = true,
                         BodyEncoding = System.Text.Encoding.UTF8
                     };
+
                     mailMessage.To.Add(toEmail);
 
                     await client.SendMailAsync(mailMessage);
@@ -50,8 +49,7 @@ namespace pz6.Services
             }
             catch (Exception ex)
             {
-                // В реальном проекте — логирование. Здесь просто вывод в Debug.
-                System.Diagnostics.Debug.WriteLine($"Ошибка отправки email: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine("Email ошибка: " + ex.Message);
                 return false;
             }
         }
